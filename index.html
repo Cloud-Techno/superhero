@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HeroFinder | Professional Hero Database</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <header class="main-header">
+      <div class="container nav-container">
+        <h1 class="logo">HERO<span>FINDER</span></h1>
+        <div class="search-box">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search hero (e.g. Batman)..."
+            aria-label="Search superhero"
+          />
+          <button id="searchBtn"><i class="fas fa-search"></i></button>
+        </div>
+        <button id="favTrigger" class="nav-fav-btn">
+          <i class="fas fa-heart"></i> <span id="favBadge">0</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="container">
+      <section id="contentArea">
+        <div id="statusMessage" class="status-msg">
+          Search for a hero to begin your journey...
+        </div>
+        <div id="heroGrid" class="hero-grid"></div>
+      </section>
+    </main>
+
+    <aside id="favDrawer" class="drawer">
+      <div class="drawer-header">
+        <h2>My Favourites</h2>
+        <button id="closeDrawer">&times;</button>
+      </div>
+      <div id="favContainer" class="fav-list"></div>
+    </aside>
+
+    <div id="loader" class="loader-overlay hidden">
+      <div class="spinner"></div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
