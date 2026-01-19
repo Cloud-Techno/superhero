@@ -3,53 +3,62 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HeroFinder | Professional Hero Database</title>
-    <link rel="stylesheet" href="style.css" />
+    <title>HeroVault | Ultimate Superhero Database</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap"
+      rel="stylesheet"
+    />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <header class="main-header">
-      <div class="container nav-container">
-        <h1 class="logo">HERO<span>FINDER</span></h1>
-        <div class="search-box">
+    <div class="background-blobs"></div>
+
+    <header class="glass-header">
+      <div class="container nav-wrapper">
+        <h1 class="logo">HERO<span>VAULT</span></h1>
+        <div class="search-container glass">
           <input
             type="text"
             id="searchInput"
-            placeholder="Search hero (e.g. Batman)..."
-            aria-label="Search superhero"
+            placeholder="Identify hero (e.g., Wolverine)..."
+            aria-label="Search"
           />
-          <button id="searchBtn"><i class="fas fa-search"></i></button>
+          <button id="searchBtn"><i class="fas fa-bolt"></i></button>
         </div>
-        <button id="favTrigger" class="nav-fav-btn">
+        <button id="favTrigger" class="glass-btn">
           <i class="fas fa-heart"></i> <span id="favBadge">0</span>
         </button>
       </div>
     </header>
 
     <main class="container">
-      <section id="contentArea">
-        <div id="statusMessage" class="status-msg">
-          Search for a hero to begin your journey...
-        </div>
-        <div id="heroGrid" class="hero-grid"></div>
-      </section>
+      <div id="statusMsg" class="welcome-text">
+        <h2>Unleash the Hero Within</h2>
+        <p>Search to reveal powerstats, origins, and cinematic appearances.</p>
+      </div>
+
+      <div id="heroGrid" class="hero-grid"></div>
     </main>
 
-    <aside id="favDrawer" class="drawer">
+    <aside id="favDrawer" class="glass-drawer">
       <div class="drawer-header">
-        <h2>My Favourites</h2>
+        <h3>Secret Sanctuary</h3>
         <button id="closeDrawer">&times;</button>
       </div>
-      <div id="favContainer" class="fav-list"></div>
+      <div id="favList" class="fav-scroll"></div>
     </aside>
 
     <div id="loader" class="loader-overlay hidden">
-      <div class="spinner"></div>
+      <div class="glass-loader">
+        <div class="spinner"></div>
+        <span>Scanning Multiverse...</span>
+      </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="main.js"></script>
   </body>
 </html>

@@ -1,132 +1,147 @@
 /**
- * Configuration & State Management
+ * ARCHITECTURE: MVVM Style Vanilla JS
+ * Logic to fetch Superhero data and cross-reference with OMDB for cinematic context.
  */
-const API_CONFIG = {
-  BASE_URL: "https://superheroapi.com/api.php/e552af34ecd4db21c68641c681793b5b",
-  // Enhancement: Movie info can be integrated via OMDB if required [cite: 10, 36]
+
+const CONFIG = {
+  HERO_API: "https://superheroapi.com/api.php/e552af34ecd4db21c68641c681793b5b",
+  OMDB_API: "https://www.omdbapi.com/?apikey=52ef7c1b",
 };
 
-let favourites = JSON.parse(localStorage.getItem("vault_favs")) || [];
+let favourites = JSON.parse(localStorage.getItem("hero_vault")) || [];
 
-// DOM Cache
-const dom = {
+// UI Elements
+const ui = {
   input: document.getElementById("searchInput"),
+  searchBtn: document.getElementById("searchBtn"),
   grid: document.getElementById("heroGrid"),
-  btn: document.getElementById("searchBtn"),
   badge: document.getElementById("favBadge"),
+  favList: document.getElementById("favList"),
   drawer: document.getElementById("favDrawer"),
-  favList: document.getElementById("favContainer"),
   loader: document.getElementById("loader"),
-  msg: document.getElementById("statusMessage"),
+  msg: document.getElementById("statusMsg"),
 };
 
 /**
- * Core Functionality: API Connection
+ * FETCH LOGIC
  */
-async function fetchHeroes(name) {
-  if (!name) return;
+async function initiateSearch() {
+  const query = ui.input.value.trim();
+  if (!query) return;
 
   toggleLoader(true);
-  dom.msg.style.display = "none";
+  ui.msg.style.display = "none";
 
   try {
-    const response = await fetch(`${API_CONFIG.BASE_URL}/search/${name}`);
-    const data = await response.json();
+    // Parallel requests would be faster, but sequential is safer for public API rate limits
+    const heroRes = await fetch(`${CONFIG.HERO_API}/search/${query}`);
+    const heroData = await heroRes.json();
 
-    if (data.response === "success") {
-      renderResults(data.results);
+    if (heroData.response === "success") {
+      // Get cinematic data for the first result to maintain performance
+      const movieRes = await fetch(`${CONFIG.OMDB_API}&s=${query}&type=movie`);
+      const movieData = await movieRes.json();
+      const movies = movieData.Search ? movieData.Search.slice(0, 3) : null;
+
+      renderHeroes(heroData.results, movies);
     } else {
-      showError("No heroes found with that name. Try 'Avenger'.");
+      showNotification("No hero found in the database.");
     }
   } catch (err) {
-    showError("Connectivity issue. Please check your API access.");
-    console.error("Fetch Error:", err);
+    showNotification("Signal lost. Check connection.");
+    console.error("API Error:", err);
   } finally {
     toggleLoader(false);
   }
 }
 
 /**
- * UI Rendering
+ * RENDERING
  */
-function renderResults(heroes) {
-  dom.grid.innerHTML = heroes
+function renderHeroes(heroes, movies) {
+  ui.grid.innerHTML = heroes
     .map((hero) => {
       const isFav = favourites.some((f) => f.id === hero.id);
+
       return `
-            <article class="hero-card">
-                <button class="fav-icon-btn ${isFav ? "active" : ""}" 
-                        onclick="handleFavToggle('${hero.id}', '${hero.name.replace(/'/g, "")}', '${hero.image.url}')">
-                    <i class="${isFav ? "fas" : "far"} fa-heart"></i>
+            <div class="hero-card">
+                <button class="fav-btn-float ${isFav ? "active" : ""}" 
+                        onclick="toggleFav('${hero.id}', '${hero.name.replace(/'/g, "")}', '${hero.image.url}')">
+                    <i class="fas fa-heart"></i>
                 </button>
-                <img src="${hero.image.url}" alt="${hero.name}" onerror="this.src='https://via.placeholder.com/400x600?text=No+Image'">
+                <img src="${hero.image.url}" alt="${hero.name}" loading="lazy">
                 <div class="hero-content">
                     <h3>${hero.name}</h3>
-                    <p class="real-name">${hero.biography["full-name"] || "Alter Ego Unknown"}</p>
-                    <div class="stats-bar">
-                        <span class="stat-pill">INT: ${hero.powerstats.intelligence}</span>
-                        <span class="stat-pill">STR: ${hero.powerstats.strength}</span>
-                        <span class="stat-pill">SPD: ${hero.powerstats.speed}</span>
+                    <small>${hero.biography["full-name"] || "Alter Ego Hidden"}</small>
+                    
+                    <div class="stat-group">
+                        <span class="pill">INT: ${hero.powerstats.intelligence}</span>
+                        <span class="pill">STR: ${hero.powerstats.strength}</span>
+                        <span class="pill">SPD: ${hero.powerstats.speed}</span>
+                    </div>
+
+                    <div class="movie-list">
+                        <h4>CINEMATIC RECORDS</h4>
+                        ${movies ? movies.map((m) => `<p>${m.Title} (${m.Year})</p>`).join("") : "<p>No records found.</p>"}
                     </div>
                 </div>
-            </article>
+            </div>
         `;
     })
     .join("");
 }
 
 /**
- * Favourites Logic
+ * PERSISTENCE (localStorage)
  */
-window.handleFavToggle = (id, name, img) => {
-  const index = favourites.findIndex((f) => f.id === id);
-  if (index === -1) {
+window.toggleFav = (id, name, img) => {
+  const idx = favourites.findIndex((f) => f.id === id);
+  if (idx === -1) {
     favourites.push({ id, name, img });
   } else {
-    favourites.splice(index, 1);
+    favourites.splice(idx, 1);
   }
 
-  localStorage.setItem("vault_favs", JSON.stringify(favourites));
-  updateUI();
+  localStorage.setItem("hero_vault", JSON.stringify(favourites));
+  updateFavUI();
+  // Smooth heart icon update without full re-render
+  event.currentTarget.classList.toggle("active");
 };
 
-function updateUI() {
-  dom.badge.innerText = favourites.length;
-  dom.favList.innerHTML = favourites
+function updateFavUI() {
+  ui.badge.innerText = favourites.length;
+  ui.favList.innerHTML = favourites
     .map(
       (f) => `
-        <div class="fav-item">
-            <img src="${f.img}" width="60">
-            <span>${f.name}</span>
-            <button onclick="handleFavToggle('${f.id}')"><i class="fas fa-trash"></i></button>
+        <div class="fav-item" style="display:flex; align-items:center; gap:15px; margin-bottom:15px; background:rgba(255,255,255,0.05); padding:10px; border-radius:15px;">
+            <img src="${f.img}" width="50" height="50" style="border-radius:50%; object-fit:cover;">
+            <span style="flex:1; font-size:0.9rem;">${f.name}</span>
+            <button onclick="toggleFav('${f.id}')" style="background:none; border:none; color:var(--accent); cursor:pointer;"><i class="fas fa-trash"></i></button>
         </div>
     `,
     )
     .join("");
-
-  // Re-render main grid to update heart icons
-  if (dom.input.value) fetchHeroes(dom.input.value);
 }
 
-// Event Listeners
-dom.btn.addEventListener("click", () => fetchHeroes(dom.input.value));
-dom.input.addEventListener(
+// Events
+ui.searchBtn.addEventListener("click", initiateSearch);
+ui.input.addEventListener(
   "keypress",
-  (e) => e.key === "Enter" && fetchHeroes(dom.input.value),
+  (e) => e.key === "Enter" && initiateSearch(),
 );
 document
   .getElementById("favTrigger")
-  .addEventListener("click", () => dom.drawer.classList.add("active"));
+  .addEventListener("click", () => ui.drawer.classList.add("active"));
 document
   .getElementById("closeDrawer")
-  .addEventListener("click", () => dom.drawer.classList.remove("active"));
+  .addEventListener("click", () => ui.drawer.classList.remove("active"));
 
-function toggleLoader(show) {
-  dom.loader.classList.toggle("hidden", !show);
+function toggleLoader(val) {
+  ui.loader.classList.toggle("hidden", !val);
 }
-function showError(txt) {
-  dom.grid.innerHTML = `<p class="error-text">${txt}</p>`;
+function showNotification(txt) {
+  ui.grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:50px;">${txt}</p>`;
 }
 
-// Initialize
-updateUI();
+// Bootstrap
+updateFavUI();
