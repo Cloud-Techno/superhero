@@ -228,3 +228,15 @@ body {
     transform: rotate(360deg);
   }
 }
+
+.welcome-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  height: calc(100vh - 120px);
+  gap: 15px;
+  position: relative;
+  z-index: 1;
+}
